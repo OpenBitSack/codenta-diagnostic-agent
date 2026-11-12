@@ -1,0 +1,21 @@
+# Phrase lexicon used by the SIMULATED pipeline stages, by QA v2 note-evidence rules,
+# and by the agent's deterministic evidence locator. Synthetic; tuned to the synthetic notes.
+id: v1
+materials:
+  all_ceramic: ["all-ceramic", "all ceramic"]
+  gold: ["full gold", "gold"]
+  pfm: ["porcelain-fused-to-metal", "porcelain fused to metal", "pfm"]
+filling_materials:
+  composite: ["composite"]
+selection_cues: ["pt chose", "patient chose", "pt selected", "pt opted for", "pt prefers"]
+undecided_cues: ["undecided", "not documented", "will confirm", "to decide"]
+crown_status_cues:
+  seated: ["seated today", "crown seated", "cemented", "delivered"]
+  prepared: ["prepped", "crown prep", "temp placed", "impression to lab", "impression sent"]
+  planned: ["planned", "next visit", "scheduled"]
+# A future seat appointment ("Seat #14 in 2 wks") is evidence the crown was NOT seated today.
+future_seat_patterns: ['\bseat\b[^.]*?\bin\s+\d+\s*(wk|wks|week|weeks|day|days)\b']
+planned_cues: ["next visit", "scheduled", "planned"]
+xray_cues:
+  PA: ['\bPA\b', 'periapical']
+prophylaxis_cues: ["prophy", "adult cleaning"]

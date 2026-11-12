@@ -1,0 +1,11 @@
+# Candidate QA (sandbox only). Adds checks that are INDEPENDENT of the extraction output:
+# they re-read the source note and the practice policy instead of trusting extracted facts.
+id: qa-v2
+rules:
+  - code_in_rule_card
+  - tooth_in_adult_range
+  - filling_surface_count_matches_code
+  - xray_codes_within_image_count
+  - policy_present
+  - crown_billing_event_note_evidence
+  - crown_material_note_evidence

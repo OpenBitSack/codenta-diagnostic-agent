@@ -1,0 +1,27 @@
+# Production extraction schema used by pipeline v1.3 (synthetic reconstruction of the interview trace).
+id: v1
+version: 1
+fields:
+  xray:
+    type: {enum: [PA]}
+    count: {type: int}
+  prophylaxis:
+    performed: {type: bool}
+  filling:
+    tooth: {type: int}
+    surfaces: {type: list, items: [M, O, D, B, L]}
+    material: {enum: [composite]}
+    status: {enum: [done_today, planned]}
+  crown:
+    tooth: {type: int}
+    # NOTE: v1 has no value for "prepared, not yet seated".
+    status: {enum: [planned, completed]}
+    # Single ambiguous field: does not distinguish discussed from selected material.
+    material: {enum: [gold, all_ceramic, pfm]}
+
+# Simulation of observed LLM behaviour when the true clinical state has no enum value:
+# the model picks the nearest representable value. This is a modelling assumption, not a measurement.
+unrepresentable_projection:
+  crown.status:
+    prepared: completed
+    seated: completed

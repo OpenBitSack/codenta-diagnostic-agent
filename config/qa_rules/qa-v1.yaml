@@ -1,0 +1,7 @@
+# Production automated checks (pipeline v1.3). All of these passed on the interview case.
+id: qa-v1
+rules:
+  - code_in_rule_card
+  - tooth_in_adult_range
+  - filling_surface_count_matches_code
+  - xray_codes_within_image_count

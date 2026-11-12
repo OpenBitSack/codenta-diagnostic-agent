@@ -1,0 +1,22 @@
+# Bounded-agent budgets and quality-gate thresholds (versioned with the code).
+id: agent-v1
+budget:
+  max_reasoning_steps: 40      # one step = one reasoner decision (one LLM call in Claude mode)
+  max_experiments: 24          # sandbox replays (cached replays still count: they are decisions)
+  max_regression_runs: 10      # full regression-suite evaluations of candidate changes
+  max_tokens: 120000           # Claude mode only; deterministic mode uses 0 tokens
+  max_cost_usd: 1.00
+  deadline_seconds: 600        # per-investigation wall clock (tunable per SLA tier)
+quality_gate:
+  max_regressions: 0                   # any previously-correct case that becomes incorrect
+  require_target_fixed: true
+  min_f1_delta: 0.0
+  max_policy_violation_delta: 0
+  max_false_hold_delta: 1              # QA v2 may hold at most 1 extra correct case
+fast_path:
+  enabled: true
+  min_similarity: 0.5                  # candidate retrieval threshold (NOT proof of same cause)
+llm:
+  # Placeholder prices for budget accounting; set to your contract rates.
+  input_usd_per_mtok: 3.0
+  output_usd_per_mtok: 15.0

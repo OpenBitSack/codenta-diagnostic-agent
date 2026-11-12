@@ -1,0 +1,14 @@
+# Fixed, versioned stage definitions of the (simulated) production prediction pipeline.
+# The diagnostic agent may READ these and build sandbox variants; it can never write them.
+stages: [extraction, coding, qa]
+versions:
+  v1.3:
+    status: production
+    extraction_schema: v1
+    extraction_prompt: extract-v1
+    coding: coding-v1
+    missing_policy_behavior: default_prep   # silent default when no policy is attached to the run
+    policy_resolution: run_input            # use only the policy attached to the run
+    qa: qa-v1
+    rule_card: interview-v1
+    lexicon: v1

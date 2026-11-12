@@ -1,0 +1,13 @@
+# Versioned practice billing policies (synthetic practices).
+practices:
+  P-SEAT-01:
+    name: Synthetic Seat-Billing Dental Group
+    current_version: v3
+    versions:
+      v2: {crown_billing_event: prep, text: "Crowns are billed at the PREP visit.", effective: "2026-01-01"}
+      v3: {crown_billing_event: seat, text: "Crowns are billed at the SEAT visit.", effective: "2026-06-01"}
+  P-PREP-02:
+    name: Synthetic Prep-Billing Dental Clinic
+    current_version: v1
+    versions:
+      v1: {crown_billing_event: prep, text: "Crowns are billed at the PREP visit.", effective: "2026-01-01"}

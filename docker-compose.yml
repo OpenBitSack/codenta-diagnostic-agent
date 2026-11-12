@@ -1,0 +1,45 @@
+# Local stack: PostgreSQL + API + worker pool. Synthetic data only; dev API keys only (CODENTA_ENV=dev).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: codenta
+      POSTGRES_PASSWORD: codenta-local-only
+      POSTGRES_DB: codenta
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codenta -d codenta"]
+      interval: 3s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    env_file: .env.example
+    environment:
+      CODENTA_DATABASE_URL: postgresql+psycopg://codenta:codenta-local-only@db:5432/codenta
+      CODENTA_RUN_WORKERS: "0"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 5s
+      retries: 20
+
+  worker:
+    build: .
+    command: ["python", "-m", "codenta_diag.worker"]
+    env_file: .env.example
+    environment:
+      CODENTA_DATABASE_URL: postgresql+psycopg://codenta:codenta-local-only@db:5432/codenta
+    depends_on:
+      api:
+        condition: service_healthy   # api creates tables + seeds synthetic data first
+    deploy:
+      replicas: 2
+
+volumes:
+  pgdata:

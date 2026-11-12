@@ -1,0 +1,44 @@
+# Catalog of SANDBOX-ONLY candidate changes the fix generator may combine.
+# In this prototype the pipeline stages are deterministic simulations, so candidate changes are
+# curated configuration deltas rather than free-form LLM-written prompt diffs (see docs/design.md).
+#
+# blast_radius: 1 = narrowest. The generator tries narrow changes first and relies on the
+# regression suite + quality gate to reject over-fitted ones.
+id: catalog-v1
+changes:
+  - id: extraction-prompt-last-mentioned-material
+    component: extraction
+    description: "Prompt patch: use the LAST crown material mentioned in the note."
+    overrides: {extraction_prompt: extract-last-mentioned}
+    addresses: [extraction.crown.material.value_incorrect]
+    blast_radius: 1
+  - id: extraction-prompt-v2-selected-material
+    component: extraction
+    description: "Prompt v2: record the material the patient SELECTED; null if no selection is documented."
+    overrides: {extraction_prompt: extract-v2-selected}
+    addresses: [extraction.crown.material.value_incorrect]
+    blast_radius: 2
+  - id: extraction-schema-v2-crown-stage
+    component: extraction
+    description: "Schema v2: crown.status gains 'prepared' and 'seated'; adds materials_discussed vs selected material."
+    overrides: {extraction_schema: v2}
+    addresses: [extraction.crown.status.value_incorrect, extraction.schema.crown.status.unrepresentable_value]
+    blast_radius: 2
+  - id: coding-missing-policy-default-seat
+    component: coding
+    description: "Coding patch: when no policy is attached, default to SEAT billing instead of PREP."
+    overrides: {missing_policy_behavior: default_seat}
+    addresses: [input.policy.missing_at_runtime, coding.policy.silent_default_when_missing]
+    blast_radius: 1
+  - id: pipeline-policy-registry-resolution
+    component: pipeline_input
+    description: "Resolve the practice's effective policy from the versioned registry when the run has none; fail closed if absent."
+    overrides: {policy_resolution: registry_fallback, missing_policy_behavior: hold}
+    addresses: [input.policy.missing_at_runtime, coding.policy.silent_default_when_missing]
+    blast_radius: 2
+  - id: qa-v2-independent-policy-and-evidence-checks
+    component: qa
+    description: "QA v2: policy presence + crown billing-event and material checks against the source note."
+    overrides: {qa: qa-v2}
+    addresses: [qa.missed_error]
+    blast_radius: 2

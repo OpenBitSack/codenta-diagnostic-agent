@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ inv.id }} <span class="pill s-{{ inv.status }}">{{ inv.status }}</span></h2>
+<p><b>Proposed next action:</b> {{ next_action }}</p>
+<div class="grid2">
+<section>
+  <table>
+    <tr><th>Practice / run</th><td>{{ inv.practice_id }} · {{ inv.pipeline_run_id }} · pipeline {{ inv.pipeline_version }}</td></tr>
+    <tr><th>Policy on run</th><td>{{ policy.text if policy else "MISSING" }} {% if policy %}<code>{{ policy.ref }}</code>{% endif %}</td></tr>
+    <tr><th>Registry policy</th><td>{{ registry_policy.text if registry_policy else "-" }}</td></tr>
+    <tr><th>Predicted</th><td><code>{{ inv.predicted_codes|join(", ") }}</code></td></tr>
+    <tr><th>Expected</th><td><code>{{ (inv.expected_codes or [])|join(", ") }}</code>{% if inv.conflicting_expectations %} <span class="pill s-escalated">conflicting labels across reports</span>{% endif %}</td></tr>
+    <tr><th>First incorrect stage</th><td><b>{{ state.earliest_incorrect_stage }}</b></td></tr>
+    <tr><th>Reasoner</th><td><code>{{ inv.reasoner }}</code>{% if inv.reasoner == "deterministic-demo" %} (rule-based, not an LLM){% endif %}</td></tr>
+    <tr><th>Affected tickets</th><td>{{ inv.report_count }} report(s): {% for r in reports %}<code>{{ r.ticket_id }}</code> {% endfor %}</td></tr>
+    <tr><th>Cost</th><td>{{ inv.reasoning_steps }} steps · {{ inv.experiments_run }} experiments · {{ inv.regression_runs }} regression runs · {{ inv.llm_calls }} LLM calls · {{ inv.tokens_used }} tokens</td></tr>
+  </table>
+</section>
+<section>
+  <h2>Source note (synthetic) — highlighted spans are evidence</h2>
+  <div class="note">{{ note_html|safe }}</div>
+  {% if state.fast_path %}
+  <p><b>Resolved by counterfactual replay</b> of parent <a href="/dashboard/investigations/{{ state.fast_path.parent }}">{{ state.fast_path.parent }}</a>'s validated fix (experiment <code>{{ state.fast_path.experiment }}</code>); identical deterministic symptom signature. No reasoning steps spent.</p>
+  {% endif %}
+</section>
+</div>
+
+<section><h2>Observations (deterministic facts)</h2>
+<table><tr><th>ID</th><th>Stage</th><th>Observation</th><th>Quoted evidence</th></tr>
+{% for o in state.observations or [] %}<tr><td>{{ o.id }}</td><td>{{ o.stage }}</td><td>{{ o.detail }}</td>
+<td>{% for s in o.evidence_spans %}<code>{{ s.text }}</code> {% endfor %}</td></tr>{% endfor %}
+</table></section>
+
+<section><h2>Root-cause hypotheses</h2>
+<table><tr><th>ID</th><th>Cause</th><th>Status</th><th>Roles</th><th>Evidence</th><th>Rationale</th></tr>
+{% for h in state.hypotheses or [] %}<tr><td>{{ h.id }}</td><td><code>{{ h.cause_id }}</code><div class="muted">{{ h.statement }}</div></td>
+<td><span class="pill s-{{ h.status }}">{{ h.status }}</span></td><td>{{ h.roles|join(", ") }}</td>
+<td>{{ (h.supporting_experiments + h.refuting_experiments + (h.supporting_observations or []))|join(", ") }}</td>
+<td>{{ h.rationale }}{% if h.verification_note %}<div style="color:#a00">⚠ {{ h.verification_note }}</div>{% endif %}</td></tr>{% endfor %}
+</table></section>
+
+<section><h2>Sandbox experiments ({{ (state.experiments or [])|length }})</h2>
+<table><tr><th>Experiment</th><th>Label</th><th>Overrides / components</th><th>Predicted</th><th>Matches</th><th>QA</th></tr>
+{% for e in state.experiments or [] %}<tr><td><code>{{ e.experiment_id }}</code></td><td>{{ e.label }}</td>
+<td class="muted">{{ e.request.field_overrides }} {{ e.request.candidate_change_ids }} {{ e.request.billing_event_override or "" }}</td>
+<td><code>{{ e.predicted_codes|join(", ") }}</code></td>
+<td>{{ e.comparison.exact_match if e.comparison else "n/a" }} <span class="muted">{{ e.expected_source }}</span></td>
+<td>{{ "pass" if e.qa_passed else "FLAG " ~ e.qa_failed_rules|join(",") }}</td></tr>{% endfor %}
+</table></section>
+
+<section><h2>Candidate fixes — before/after on the regression suite</h2>
+<table><tr><th>Fix</th><th>Change set</th><th>Gate</th><th>F1</th><th>Escaped errors</th><th>Policy violations</th><th>Improvements</th><th>Regressions</th><th>Approval</th></tr>
+{% for f in fixes %}{% set ev = f.evaluation %}<tr><td><code>{{ f.id }}</code></td><td>{{ f.change_ids|join("<br>")|safe }}</td>
+<td><span class="pill s-{{ 'PASSED' if f.gate_passed else 'REJECTED' }}">{{ 'PASSED' if f.gate_passed else 'REJECTED' }}</span>
+{% if ev.failed_checks %}<div class="muted">{{ ev.failed_checks|join(", ") }}</div>{% endif %}</td>
+<td>{{ ev.baseline_metrics.f1 }} → {{ ev.candidate_metrics.f1 }}</td>
+<td>{{ ev.baseline_metrics.escaped_errors }} → {{ ev.candidate_metrics.escaped_errors }}</td>
+<td>{{ ev.baseline_metrics.policy_violations }} → {{ ev.candidate_metrics.policy_violations }}</td>
+<td>{{ ev.improvements|length }}</td>
+<td>{% for r in ev.regressions %}<code>{{ r.case_id }}</code>{% if r.critical %} (critical){% endif %}<br>{% else %}none{% endfor %}</td>
+<td>{{ f.approval_status }}{% if f.reviewer_id %}<div class="muted">{{ f.reviewer_id }} · {{ f.review_seconds }}s</div>{% endif %}</td></tr>{% endfor %}
+</table>
+{% for f in fixes if f.approval_status == "pending_review" %}
+<form method="post" action="/dashboard/fixes/{{ f.id }}/review">
+  <input type="hidden" name="opened_at" value="{{ opened_at }}">
+  <b>Decision for {{ f.id }}</b> (approval sends the change set to the standard release process; nothing is deployed from here)<br>
+  <textarea name="notes" rows="2" placeholder="Reviewer notes"></textarea><br>
+  <button name="decision" value="approve">Approve</button> <button name="decision" value="reject">Reject</button>
+</form>{% endfor %}
+</section>
+
+{% if state.escalation %}<section><h2>Escalation — human judgement required</h2>
+<p>Reason: <code>{{ state.escalation.reason }}</code>{% if state.escalation.grouped_with %} · grouped with <a href="/dashboard/investigations/{{ state.escalation.grouped_with }}">{{ state.escalation.grouped_with }}</a>{% endif %}</p>
+<ol>{% for q in state.escalation.questions_for_human %}<li>{{ q }}</li>{% endfor %}</ol>
+<p><b>Recommended:</b> {{ state.escalation.recommended_next_action }}</p>
+<p class="muted">Already done by the agent (do not repeat): {% for e in state.escalation.already_done_do_not_repeat or [] %}<code>{{ e.label }}</code> {% endfor %}</p>
+</section>{% endif %}
+
+<section><h2>Related incidents</h2>
+<table><tr><th>Known issue (confirmed cause)</th><th>Status</th><th>Link type</th><th>Investigations in group</th></tr>
+{% for l in links %}{% set k = kis[l.known_issue_id] %}<tr><td><code>{{ k.cause_id }}</code></td><td>{{ k.status }}</td><td>{{ l.link_type }}</td><td>{{ group_sizes[k.id] }}</td></tr>{% endfor %}
+</table>
+<table><tr><th>Similarity candidate</th><th>Score</th><th>Shared features</th><th>Status</th></tr>
+{% for s in inv.similar or [] %}<tr><td><a href="/dashboard/investigations/{{ s.investigation_id }}">{{ s.investigation_id }}</a></td><td>{{ s.score }} <span class="muted">{{ s.band }}</span></td><td class="muted">{{ s.shared|join("; ") }}</td><td>{{ s.status }}</td></tr>{% endfor %}
+</table><p class="muted">Similarity scores are retrieval candidates only; they never link root causes without replay evidence.</p></section>
+
+<section><h2>Decision log</h2><table><tr><th>Step</th><th>Phase</th><th>Action</th><th>Rationale</th></tr>
+{% for d in state.decisions or [] %}<tr><td>{{ d.step }}</td><td>{{ d.phase }}</td><td>{{ d.action }}</td><td>{{ d.rationale }}</td></tr>{% endfor %}
+</table></section>
+{% endblock %}

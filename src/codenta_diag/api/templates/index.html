@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+{% set m = metrics %}
+<p class="muted">Reasoner: <code>{{ reasoner }}</code>{% if reasoner == "deterministic" %} — rule-based demo policy, NOT an LLM{% endif %}</p>
+<div class="cards">
+  <div class="card"><div class="v">{{ m.outcomes_distinguished.diagnosed_incidents }}</div><div class="k">Diagnosed incidents</div></div>
+  <div class="card"><div class="v">{{ m.outcomes_distinguished.validated_fix_proposals }}</div><div class="k">Validated fix proposals</div></div>
+  <div class="card"><div class="v">{{ m.outcomes_distinguished.human_approved_fixes }}</div><div class="k">Human-approved fixes</div></div>
+  <div class="card"><div class="v">{{ m.outcomes_distinguished.tickets_linked_to_confirmed_root_causes }}</div><div class="k">Tickets linked to confirmed root causes</div></div>
+  <div class="card"><div class="v">{{ m.queue.depth }} / {{ m.queue.active_investigations }}</div><div class="k">Queue depth / active</div></div>
+  <div class="card"><div class="v">{{ m.volume.tickets_received }} → {{ m.volume.full_agent_investigations }}</div><div class="k">Tickets → full agent investigations</div></div>
+  <div class="card"><div class="v">{{ m.volume.exact_duplicates_linked }}</div><div class="k">Exact duplicates linked</div></div>
+  <div class="card"><div class="v">{{ m.cost.reasoning_steps_avoided_duplicates + m.cost.reasoning_steps_avoided_known_issue_replay }}</div><div class="k">Reasoning steps avoided</div></div>
+  <div class="card"><div class="v">{{ m.human_review.escalation_rate if m.human_review.escalation_rate is not none else "–" }}</div><div class="k">Escalation rate</div></div>
+  <div class="card"><div class="v">{{ m.latency_seconds.time_to_diagnosis_p50 if m.latency_seconds.time_to_diagnosis_p50 is not none else "–" }}s</div><div class="k">Time to diagnosis p50 (measured)</div></div>
+</div>
+
+<h2>Review queue — one decision per change set / escalation question, ranked by severity × affected tickets</h2>
+<table>
+<tr><th>Score</th><th>Kind</th><th>Investigations</th><th>Severity</th><th>Affected tickets</th><th>Summary</th><th>Decision needed</th></tr>
+{% for item in queue %}
+<tr><td>{{ item.score }}</td><td>{{ item.kind }}</td>
+<td>{% for iid in item.investigations %}<a href="/dashboard/investigations/{{ iid }}">{{ iid }}</a><br>{% endfor %}
+{% if item.linked_investigations %}<div class="muted">+{{ item.linked_investigations|length }} linked (replay / grouped)</div>{% endif %}
+{% if item.root_causes_addressed %}<div class="muted">{{ item.root_causes_addressed|length }} confirmed root cause(s)</div>{% endif %}</td>
+<td>{{ item.severity }}</td><td>{{ item.affected_tickets }}</td><td>{{ item.summary }}</td><td>{{ item.decision_needed }}</td></tr>
+{% else %}<tr><td colspan="7" class="muted">Nothing awaiting human review.</td></tr>{% endfor %}
+</table>
+
+<h2>All investigations</h2>
+<table>
+<tr><th>ID</th><th>Status</th><th>Practice</th><th>Run</th><th>Predicted → expected</th><th>Reports</th><th>Resolution</th><th>Steps / experiments / regressions</th><th>Root-cause signature</th></tr>
+{% for i in investigations %}
+<tr><td><a href="/dashboard/investigations/{{ i.id }}">{{ i.id }}</a></td>
+<td><span class="pill s-{{ i.status }}">{{ i.status }}</span></td><td>{{ i.practice_id }}</td><td>{{ i.pipeline_run_id }}</td>
+<td><code>{{ i.predicted_codes|join(", ") }}</code> → <code>{{ (i.expected_codes or [])|join(", ") }}</code></td>
+<td>{{ i.report_count }}</td><td>{{ i.resolution or "" }}</td>
+<td>{{ i.reasoning_steps }} / {{ i.experiments_run }} / {{ i.regression_runs }}</td>
+<td class="muted">{{ (i.root_cause_signature or "")|replace("|", " | ") }}</td></tr>
+{% endfor %}
+</table>
+<p class="muted">Latency figures are measurements of this local deployment only; no SLA is implied.</p>
+{% endblock %}

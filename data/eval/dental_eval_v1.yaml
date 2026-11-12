@@ -1,0 +1,251 @@
+# Synthetic labeled regression dataset. NO real patient data.
+# Labels follow the interview rule card (config/rule_cards/interview-v1.yaml) plus the documented
+# synthetic assumptions listed there. `run_policy_ref` is the policy attached to the pipeline run
+# (may be null to simulate a missing input); `true_policy_ref` is the practice's actual policy.
+id: dental-eval-v1
+version: 1
+rule_card: interview-v1
+cases:
+  - id: xray-single
+    note: "1 PA taken of #30; no periapical pathology noted."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D0220]
+    categories: [xray]
+
+  - id: xray-duplicate-mention
+    note: "PA of #3 taken. Reviewed PA with pt; no caries noted."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D0220]
+    categories: [xray, duplicate_xray_mentions]
+
+  - id: filling-one-surface
+    note: "#30 O composite filling done today."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2391]
+    categories: [filling_one_surface]
+
+  - id: filling-two-surface-mo
+    note: "#19 MO composite filling done today."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2392]
+    categories: [filling_two_surface]
+
+  - id: filling-two-surface-do
+    note: "#4 DO composite done today."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: [D2392]
+    categories: [filling_two_surface]
+
+  - id: prophy-and-xray
+    note: "Adult prophy completed. 1 PA taken of #14."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D1110, D0220]
+    categories: [multiple_procedures, xray]
+
+  - id: interview-note-seat-billing
+    note: "#14 cracked, pt c/o pain on biting. 1 PA taken. Prepped #14 for crown, temp placed, impression to lab. Discussed gold and all-ceramic; pt chose all-ceramic. Also #19 MO composite filling done today. Seat #14 in 2 wks."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D0220, D2392]
+    gold: {crown_status: prepared, crown_material: all_ceramic}
+    categories: [crown_prep_today, seat_billing, gold_discussed_ceramic_selected, multiple_procedures, overlapping_extraction_errors]
+    critical: true
+
+  - id: interview-note-prep-billing
+    note: "#14 cracked, pt c/o pain on biting. 1 PA taken. Prepped #14 for crown, temp placed, impression to lab. Discussed gold and all-ceramic; pt chose all-ceramic. Also #19 MO composite filling done today. Seat #14 in 2 wks."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: [D0220, D2392, D2740]
+    gold: {crown_status: prepared, crown_material: all_ceramic}
+    categories: [crown_prep_today, prep_billing, gold_discussed_ceramic_selected, multiple_procedures, overlapping_extraction_errors]
+    critical: true
+
+  - id: crown-seated-seat-billing
+    note: "#3 all-ceramic crown seated today, cemented with resin cement."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2740]
+    gold: {crown_status: seated, crown_material: all_ceramic}
+    categories: [crown_seated_today, seat_billing]
+    critical: true
+
+  - id: crown-seated-prep-billing
+    note: "#3 all-ceramic crown seated today."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: []
+    gold: {crown_status: seated, crown_material: all_ceramic}
+    categories: [crown_seated_today, prep_billing]
+    critical: true
+
+  - id: gold-crown-prepped-prep-billing
+    note: "#30 prepped for full gold crown, temp placed, impression sent. Seat #30 in 3 wks."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: [D2790]
+    gold: {crown_status: prepared, crown_material: gold}
+    categories: [crown_prep_today, prep_billing]
+
+  - id: gold-discussed-ceramic-selected-seated
+    note: "Discussed gold and all-ceramic; pt chose all-ceramic. #18 all-ceramic crown seated today."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2740]
+    gold: {crown_status: seated, crown_material: all_ceramic}
+    categories: [gold_discussed_ceramic_selected, crown_seated_today, seat_billing]
+
+  - id: pfm-chosen-over-ceramic
+    note: "#14 crown seated today. Pt chose PFM over all-ceramic."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2750]
+    gold: {crown_status: seated, crown_material: pfm}
+    categories: [multiple_materials_discussed, crown_seated_today, seat_billing]
+    critical: true
+
+  - id: three-materials-gold-chosen
+    note: "Discussed gold, PFM, and all-ceramic for #31. Pt chose gold. #31 crown seated today."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2790]
+    gold: {crown_status: seated, crown_material: gold}
+    categories: [multiple_materials_discussed, crown_seated_today, seat_billing]
+
+  - id: future-crown-planned
+    note: "#19 MO composite done today. #30 crown planned next visit; pt to decide material."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2392]
+    gold: {crown_status: planned, crown_material: null}
+    categories: [future_planned_procedures, multiple_procedures]
+
+  - id: future-filling-scheduled
+    note: "1 PA taken. #20 DO composite scheduled for next visit."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: [D0220]
+    categories: [future_planned_procedures, xray]
+
+  - id: ambiguous-material-seated
+    note: "#3 crown seated today. Discussed gold vs PFM; material not documented."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: []   # synthetic assumption `ambiguous-material`: hold for review, do not auto-code
+    gold: {crown_status: seated, crown_material: null}
+    categories: [ambiguous_documentation, crown_seated_today]
+
+  - id: undecided-material-prepped-prep-billing
+    note: "#3 prepped for crown, temp placed. Pt undecided between gold and PFM; will confirm before lab Rx."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: []
+    gold: {crown_status: prepared, crown_material: null}
+    categories: [ambiguous_documentation, crown_prep_today, prep_billing]
+
+  - id: conflicting-crown-stage
+    note: "#30 crown seated today. Seat #30 in 2 wks."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: []   # synthetic assumption: contradictory stage documentation is held, not coded
+    categories: [conflicting_documentation]
+
+  - id: overlap-errors-seat-billing
+    note: "#30 fractured cusp. Prepped #30 for crown, temp placed. Discussed PFM and all-ceramic; pt chose all-ceramic. #3 O composite done today. Seat #30 in 3 wks."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2391]
+    gold: {crown_status: prepared, crown_material: all_ceramic}
+    categories: [overlapping_extraction_errors, crown_prep_today, seat_billing, multiple_procedures]
+    critical: true
+
+  - id: overlap-errors-prep-billing
+    note: "#30 fractured cusp. Prepped #30 for crown, temp placed. Discussed PFM and all-ceramic; pt chose all-ceramic. #3 O composite done today. Seat #30 in 3 wks."
+    practice_id: P-PREP-02
+    run_policy_ref: P-PREP-02@v1
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: [D2391, D2740]
+    gold: {crown_status: prepared, crown_material: all_ceramic}
+    categories: [overlapping_extraction_errors, crown_prep_today, prep_billing, multiple_procedures]
+    critical: true
+
+  - id: gold-crown-seated-seat-billing
+    note: "#2 full gold crown seated today."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D2790]
+    gold: {crown_status: seated, crown_material: gold}
+    categories: [crown_seated_today, seat_billing]
+
+  - id: missing-policy-seat-practice-prepped
+    note: "#15 prepped for all-ceramic crown, temp placed. Seat #15 in 2 wks."
+    practice_id: P-SEAT-01
+    run_policy_ref: null
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: []
+    gold: {crown_status: prepared, crown_material: all_ceramic}
+    categories: [missing_policy, crown_prep_today, seat_billing]
+    critical: true
+
+  - id: missing-policy-prep-practice-prepped
+    note: "#14 prepped for PFM crown, temp placed."
+    practice_id: P-PREP-02
+    run_policy_ref: null
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: [D2750]
+    gold: {crown_status: prepared, crown_material: pfm}
+    categories: [missing_policy, crown_prep_today, prep_billing]
+
+  - id: missing-policy-prep-practice-seated
+    note: "#3 PFM crown seated today."
+    practice_id: P-PREP-02
+    run_policy_ref: null
+    true_policy_ref: P-PREP-02@v1
+    expected_codes: []
+    gold: {crown_status: seated, crown_material: pfm}
+    categories: [missing_policy, crown_seated_today, prep_billing]
+    critical: true
+
+  - id: older-policy-version-prep
+    note: "#13 prepped for all-ceramic crown, temp placed. Seat #13 in 2 wks."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v2
+    true_policy_ref: P-SEAT-01@v2
+    expected_codes: [D2740]
+    gold: {crown_status: prepared, crown_material: all_ceramic}
+    categories: [different_policy_versions, crown_prep_today, prep_billing]
+
+  - id: four-procedures-one-visit
+    note: "Adult prophy completed. 1 PA taken. #20 MO composite done today. #3 all-ceramic crown seated today."
+    practice_id: P-SEAT-01
+    run_policy_ref: P-SEAT-01@v3
+    true_policy_ref: P-SEAT-01@v3
+    expected_codes: [D1110, D0220, D2392, D2740]
+    gold: {crown_status: seated, crown_material: all_ceramic}
+    categories: [multiple_procedures, crown_seated_today, seat_billing]

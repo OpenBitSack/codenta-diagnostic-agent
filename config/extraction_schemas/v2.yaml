@@ -1,0 +1,22 @@
+# Candidate extraction schema (sandbox only until human-approved).
+id: v2
+version: 2
+fields:
+  xray:
+    type: {enum: [PA]}
+    count: {type: int}
+  prophylaxis:
+    performed: {type: bool}
+  filling:
+    tooth: {type: int}
+    surfaces: {type: list, items: [M, O, D, B, L]}
+    material: {enum: [composite]}
+    status: {enum: [done_today, planned]}
+  crown:
+    tooth: {type: int}
+    status: {enum: [planned, prepared, seated]}
+    materials_discussed: {type: list, items: [gold, all_ceramic, pfm]}
+    # Material the patient SELECTED. Null when the note does not document a selection.
+    material: {enum: [gold, all_ceramic, pfm], nullable: true}
+
+unrepresentable_projection: {}

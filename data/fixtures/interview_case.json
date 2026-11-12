@@ -1,0 +1,14 @@
+{
+  "description": "Verbatim synthetic debugging exercise from the Codenta interview. Used to assert the simulated v1.3 pipeline reproduces the reported failure exactly.",
+  "note": "#14 cracked, pt c/o pain on biting. 1 PA taken. Prepped #14 for crown, temp placed, impression to lab. Discussed gold and all-ceramic; pt chose all-ceramic. Also #19 MO composite filling done today. Seat #14 in 2 wks.",
+  "practice_policy": "Crowns are billed at the SEAT visit.",
+  "pipeline_prediction": ["D0220", "D2392", "D2790"],
+  "intermediate_extraction": {
+    "xray": {"type": "PA", "count": 1},
+    "filling": {"tooth": 19, "surfaces": ["M", "O"], "material": "composite", "status": "done_today"},
+    "crown": {"tooth": 14, "status": "completed", "material": "gold"}
+  },
+  "qa_passed": true,
+  "expected_codes_seat_policy": ["D0220", "D2392"],
+  "expected_codes_prep_policy": ["D0220", "D2392", "D2740"]
+}

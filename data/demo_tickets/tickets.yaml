@@ -1,0 +1,21 @@
+# Ticket payload templates for the demo scenarios. `predicted_codes` are filled from the saved run.
+demo_a:
+  - {ticket_id: TCK-A-001, run_id: RUN-1001, expected_codes: [D0220, D2392], severity: high,
+     error_description: "Gold crown D2790 billed on prep visit; patient chose all-ceramic and practice bills at seat."}
+demo_b:
+  - {ticket_id: TCK-B-001, run_id: RUN-2001, expected_codes: [D0220, D2392, D2740], severity: high,
+     error_description: "Crown prepped today at a prep-billing practice but no crown code was billed."}
+demo_d:
+  - {ticket_id: TCK-D-001, run_id: RUN-3001, expected_codes: [D2790], severity: medium,
+     error_description: "PFM crown code billed but patient chose gold."}
+  - {ticket_id: TCK-D-002, run_id: RUN-3002, expected_codes: [], severity: medium,
+     error_description: "Gold crown billed at prep visit; practice bills at seat."}
+  - {ticket_id: TCK-D-003, run_id: RUN-3003, expected_codes: [D2740], severity: medium,
+     error_description: "Seated all-ceramic crown not billed."}
+  - {ticket_id: TCK-D-004, run_id: RUN-3004, expected_codes: [D2391], severity: medium,
+     error_description: "PFM crown billed at prep; patient chose all-ceramic; practice bills at seat."}
+escalation:
+  - {ticket_id: TCK-E-001, run_id: RUN-4001, expected_codes: [D2750], severity: low,
+     error_description: "Should be PFM crown per lab Rx."}
+  - {ticket_id: TCK-E-002, run_id: RUN-4002, expected_codes: [D2740], severity: low,
+     error_description: "Should be all-ceramic per lab Rx."}

@@ -1,0 +1,80 @@
+# Authoritative rule source for this prototype: the interview rule card.
+# Anything not on the card is marked `synthetic_assumption: true` and documented in docs/design.md.
+id: interview-v1
+version: 1
+description: Dental coding rule card shared in the Codenta interview debugging exercise (synthetic).
+
+adult_teeth: {min: 1, max: 32}
+# Synthetic demo assumption: premolars + molars in universal numbering are "posterior".
+posterior_teeth: [1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 28, 29, 30, 31, 32]
+
+surfaces:
+  M: mesial
+  D: distal
+  O: occlusal
+  B: buccal
+  L: lingual
+
+procedures:
+  xray:
+    billing: {mode: current_visit}
+  prophylaxis:
+    billing: {mode: current_visit}
+  filling:
+    billing: {mode: current_visit, billable_statuses: [done_today]}
+  crown:
+    # Multi-visit procedure: billed once, at PREP or SEAT depending on practice policy.
+    billing:
+      mode: policy_event
+      policy_key: crown_billing_event
+      event_statuses:
+        prep: [prepared]
+        # "completed" is the legacy v1 extraction value; coding treats it as seated.
+        seat: [seated, completed]
+
+codes:
+  D0220:
+    description: One periapical X-ray image
+    procedure: xray
+    match: {image_type: PA}
+    per_image: true
+  D1110:
+    description: Adult cleaning
+    procedure: prophylaxis
+    match: {patient: adult}
+  D2391:
+    description: One-surface posterior composite
+    procedure: filling
+    match: {material: composite, region: posterior, surface_count: 1}
+  D2392:
+    description: Two-surface posterior composite
+    procedure: filling
+    match: {material: composite, region: posterior, surface_count: 2}
+  D2740:
+    description: All-ceramic crown
+    procedure: crown
+    match: {material: all_ceramic}
+  D2750:
+    description: Porcelain-fused-to-metal crown
+    procedure: crown
+    match: {material: pfm}
+  D2790:
+    description: Full gold crown
+    procedure: crown
+    match: {material: gold}
+
+general_rules:
+  - Code only procedures billable for the current visit.
+  - Match filling material and surface count.
+  - Crowns are billed once, either at preparation or seating, based on practice policy.
+  - Temporary crowns are not separately billed in this exercise.
+  - Crown material must reflect what the patient selected, not merely discussed options.
+  - Each X-ray image is counted once.
+
+synthetic_assumptions:
+  - id: additional-pa-images
+    text: The card defines D0220 for one PA image only. Additional images are flagged as unsupported rather than coded.
+  - id: ambiguous-material
+    text: If the selected crown material is not documented, no crown code is produced and the case is held for review.
+  - id: posterior-teeth
+    text: Posterior = premolars and molars (1-5, 12-21, 28-32 in universal numbering).

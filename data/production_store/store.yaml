@@ -1,0 +1,51 @@
+# Synthetic "production" notes. At seed time each note is run through the simulated production
+# pipeline (v1.3) and the resulting stage traces are stored as the saved, read-only run record.
+# NO real patient data.
+notes:
+  # Demo A — the exact interview note, seat-billing practice
+  - note_id: N-1001
+    run_id: RUN-1001
+    practice_id: P-SEAT-01
+    policy_ref: P-SEAT-01@v3
+    text: "#14 cracked, pt c/o pain on biting. 1 PA taken. Prepped #14 for crown, temp placed, impression to lab. Discussed gold and all-ceramic; pt chose all-ceramic. Also #19 MO composite filling done today. Seat #14 in 2 wks."
+
+  # Demo B — identical note text recorded at a prep-billing practice
+  - note_id: N-2001
+    run_id: RUN-2001
+    practice_id: P-PREP-02
+    policy_ref: P-PREP-02@v1
+    text: "#14 cracked, pt c/o pain on biting. 1 PA taken. Prepped #14 for crown, temp placed, impression to lab. Discussed gold and all-ceramic; pt chose all-ceramic. Also #19 MO composite filling done today. Seat #14 in 2 wks."
+
+  # Demo D — similar-looking crown errors with different root causes
+  - note_id: N-3001   # wrong selected material only
+    run_id: RUN-3001
+    practice_id: P-SEAT-01
+    policy_ref: P-SEAT-01@v3
+    text: "#3 crown seated today. Discussed PFM and gold; pt chose gold."
+  - note_id: N-3002   # wrong procedure stage only
+    run_id: RUN-3002
+    practice_id: P-SEAT-01
+    policy_ref: P-SEAT-01@v3
+    text: "#30 prepped for full gold crown, temp placed. Seat #30 in 3 wks."
+  - note_id: N-3003   # practice policy missing from the run
+    run_id: RUN-3003
+    practice_id: P-SEAT-01
+    policy_ref: null
+    text: "#5 all-ceramic crown seated today, cemented."
+  - note_id: N-3004   # multiple overlapping errors (same pattern as the interview note)
+    run_id: RUN-3004
+    practice_id: P-SEAT-01
+    policy_ref: P-SEAT-01@v3
+    text: "#31 cracked. Prepped #31 for crown, temp placed. Discussed PFM and all-ceramic; pt chose all-ceramic. #4 O composite done today. Seat #31 in 3 wks."
+
+  # Escalation scenarios — label requires facts the note does not document
+  - note_id: N-4001
+    run_id: RUN-4001
+    practice_id: P-SEAT-01
+    policy_ref: P-SEAT-01@v3
+    text: "#3 crown seated today. Discussed gold vs PFM; material not documented."
+  - note_id: N-4002
+    run_id: RUN-4002
+    practice_id: P-SEAT-01
+    policy_ref: P-SEAT-01@v3
+    text: "#14 crown seated today. Discussed PFM vs all-ceramic; pt will confirm shade and material."
