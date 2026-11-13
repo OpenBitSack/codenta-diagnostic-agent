@@ -10,8 +10,6 @@ passed QA** in a fixed multi-stage LLM pipeline (extraction → coding → QA). 
 sandbox experiments, deduplicates incoming tickets without merging different problems, validates
 candidate fixes against a regression suite, and hands humans a short, ranked list of decisions.
 
-- Code: [GITHUB_REPOSITORY_URL]
-- Demo video: [DEMO_VIDEO_URL]
 - Not deployed anywhere. Everything below runs locally.
 
 ---
